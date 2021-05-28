@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zappers</title>
+    <script src="lib/phaser.min.js"></script>
+    <script src="lib/stats.js"></script>
+    <script src="lib/enable3d.phaserExtension.0.22.0-dev.1.min.js"></script>
+</head>
+
+<body>
+    <span style="position:absolute;z-index:31;left:calc(100% - 170px);top: 2%;"><img width="64px" src="assets/images/coin.png"><span style="font-size:42px;position:relative;bottom:16px;color:white;font-family:monospace;" id="coinDisplay">0000</span></span>
+    <img style="position: absolute;z-index:30;pointer-events:none;" width="100%" height="100%" src="assets/images/cockpit.png">
+    <canvas id="staminaBar" style="position: absolute;z-index:30;pointer-events:none;left:100%;top:100%;transform: translate(-105%, -105%);" style="position: absolute;z-index:30;" width="150px" height="30px"></canvas>
+    <canvas id="healthBar" style="position: absolute;z-index:30;pointer-events:none;left: 175px;top:100%;transform: translate(-105%, -105%);" style="position: absolute;z-index:30;" width="150px" height="30px"></canvas>
+    <script src="lib/three-nebula.js"></script>
+    <script src="scripts/constants.js"></script>
+    <script src="scripts/bullet.js"></script>
+    <script src="scripts/asteroid.js"></script>
+    <script src="scripts/ships/healer.js"></script>
+    <script src="scripts/ships/miner.js"></script>
+    <script src="scripts/ships/hunter.js"></script>
+    <script src="scripts/ships/tanker.js"></script>
+    <script src="scripts/main.js"></script>
+</body>
+
+</html>
