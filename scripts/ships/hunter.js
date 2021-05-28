@@ -17,6 +17,7 @@ class Hunter {
         this.stamina = 100;
         this.coins = 0;
         this.cooldown = 0;
+        this.kbCooldown = 0;
         this.target = null;
         this.velocity = { position: { x: 0, y: 0, z: 0 } };
         this.targetPos = new THREE.Vector3();
@@ -24,6 +25,10 @@ class Hunter {
     }
     update() {
         this.cooldown -= 1 * mainScene.timeScale;
+        this.kbCooldown -= 1 * mainScene.timeScale;
+        if (this.mesh.position.distanceTo(ORIGIN) > 1000) {
+            this.destroy();
+        }
         if (this.target === null) {
             let closestA;
             let closestDist = Infinity;
@@ -113,9 +118,9 @@ class Hunter {
                         x: this.mesh.position.x + offset.x,
                         y: this.mesh.position.y + offset.y,
                         z: this.mesh.position.z + offset.z,
-                        xVel: vec.x * 300,
-                        yVel: vec.y * 300,
-                        zVel: vec.z * 300,
+                        xVel: vec.x * 200,
+                        yVel: vec.y * 200,
+                        zVel: vec.z * 200,
                         source: this,
                         color: "green"
                     }));
@@ -130,6 +135,12 @@ class Hunter {
             if (this.mesh.position.distanceTo(bullet.mesh.position) < 5 && bullet.source !== this) {
                 bullet.destroy();
                 this.health -= 5 * Math.floor(Math.random() * 5) * (bullet.source instanceof Healer ? -1 : 1);
+                if (this.kbCooldown < 0) {
+                    this.velocity.position.x += bullet.velocity.x * 0.3;
+                    this.velocity.position.y += bullet.velocity.y * 0.3;
+                    this.velocity.position.z += bullet.velocity.z * 0.3;
+                    this.kbCooldown = 30;
+                }
                 if (bullet.source === mainScene.player) {
                     this.health -= 5 * Math.floor(Math.random() * 5);
                 }

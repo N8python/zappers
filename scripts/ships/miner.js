@@ -17,6 +17,7 @@ class Miner {
         this.stamina = 50;
         this.coins = 0;
         this.cooldown = 0;
+        this.kbCooldown = 0;
         this.target = null;
         this.velocity = { position: { x: 0, y: 0, z: 0 } };
         this.targetPos = new THREE.Vector3();
@@ -24,6 +25,10 @@ class Miner {
     }
     update() {
         this.cooldown -= 1 * mainScene.timeScale;
+        this.kbCooldown -= 1 * mainScene.timeScale;
+        if (this.mesh.position.distanceTo(ORIGIN) > 1000) {
+            this.destroy();
+        }
         if (this.target === null) {
             let closestA;
             let closestDist = Infinity;
@@ -119,6 +124,12 @@ class Miner {
             if (this.mesh.position.distanceTo(bullet.mesh.position) < 5 && bullet.source !== this) {
                 bullet.destroy();
                 this.health -= 5 * Math.floor(Math.random() * 5) * (bullet.source instanceof Healer ? -1 : 1);
+                if (this.kbCooldown < 0) {
+                    this.velocity.position.x += bullet.velocity.x * 0.3;
+                    this.velocity.position.y += bullet.velocity.y * 0.3;
+                    this.velocity.position.z += bullet.velocity.z * 0.3;
+                    this.kbCooldown = 30;
+                }
                 if ((bullet.source instanceof Miner && !(this.target instanceof Hunter)) || bullet.source === mainScene.player) {
                     this.target = bullet.source;
                 }

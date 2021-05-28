@@ -12,6 +12,8 @@ const healthCtx = healthBar.getContext("2d");
 const healthGrad = healthCtx.createLinearGradient(0, 0, 200, 0);
 healthGrad.addColorStop(0, "green");
 healthGrad.addColorStop(1, "lime");
+const minimap = document.getElementById("minimap");
+const minimapCtx = minimap.getContext("2d");
 const loadEmitter = async(name) => {
     const text = await fetch(`./assets/particles/${name}.json`);
     const json = await text.json();
@@ -109,6 +111,7 @@ class MainScene extends Scene3D {
         this.player = mesh;
         this.player.mesh = this.player;
         this.player.cooldown = 0;
+        this.player.kbCooldown = 0;
         this.player.roll = 0;
         this.player.boosting = false;
         this.player.stamina = 100;
@@ -281,6 +284,15 @@ class MainScene extends Scene3D {
         stats.begin();
         this.delta = delta;
         this.timeScale = delta / 16.67;
+        minimapCtx.fillStyle = "black";
+        minimapCtx.beginPath();
+        minimapCtx.arc(100, 100, 100, 0, 2 * Math.PI);
+        minimapCtx.strokeStyle = "white";
+        minimapCtx.lineWidth = 5;
+        minimapCtx.beginPath();
+        minimapCtx.arc(100, 100, 95, 0, 2 * Math.PI);
+        minimapCtx.stroke();
+        minimapCtx.fill();
         staminaCtx.fillStyle = "#333333";
         staminaCtx.fillRect(0, 0, 150, 30);
         staminaCtx.fillStyle = "white";
@@ -318,11 +330,18 @@ class MainScene extends Scene3D {
         this.player.health = Math.min(Math.max(this.player.health, 0), 250);
         this.player.healthChange = Math.min(Math.max(this.player.healthChange, 0), 250);
         this.player.cooldown -= 1 * mainScene.timeScale;
+        this.player.kbCooldown -= 1 * mainScene.timeScale;
         this.player.staminaCooldown--;
         this.bullets.forEach(bullet => {
             bullet.update();
             if (bullet.source !== this.player && bullet.mesh.position.distanceTo(this.player.position) < 5) {
                 bullet.destroy();
+                if (this.player.kbCooldown < 0) {
+                    this.player.velocity.position.x += bullet.velocity.x * 0.3;
+                    this.player.velocity.position.y += bullet.velocity.y * 0.3;
+                    this.player.velocity.position.z += bullet.velocity.z * 0.3;
+                    this.player.kbCooldown = 30;
+                }
                 this.player.loseHealth(5 * Math.floor(Math.random() * 5) * (bullet.source instanceof Healer ? -1 : 1));
             }
         });
@@ -345,7 +364,53 @@ class MainScene extends Scene3D {
                 mainScene.player.position.y += mainScene.player.velocity.position.y;
                 mainScene.player.position.z += mainScene.player.velocity.position.z;
             }
+            if (!(entity instanceof Asteroid)) {
+                minimapCtx.fillStyle = ({
+                    "Miner": "cyan",
+                    "Hunter": "green",
+                    "Tanker": "purple",
+                    "Healer": "yellow"
+                })[entity.constructor.name];
+                const playerCoords = { x: 200 - (entity.mesh.position.x + 1000) / 10, y: (entity.mesh.position.z + 1000) / 10 };
+                minimapCtx.save();
+                minimapCtx.translate(playerCoords.x, playerCoords.y);
+                const vec = new THREE.Vector3();
+                entity.mesh.getWorldDirection(vec);
+                minimapCtx.rotate(Math.atan2(vec.x, vec.z) + Math.PI);
+                minimapCtx.beginPath();
+                //minimapCtx.stroke();
+                minimapCtx.moveTo(-5, -5);
+                minimapCtx.lineTo(0, 5);
+                minimapCtx.lineTo(5, -5);
+                minimapCtx.fill();
+                minimapCtx.restore();
+            }
         });
+        /*minimapCtx.fillStyle = "grey";
+        minimapCtx.beginPath();
+        minimapCtx.arc(200 - (this.player.position.x + 1000) / 10, (this.player.position.z + 1000) / 10, 4, 0, 2 * Math.PI);
+        minimapCtx.fill();
+        minimapCtx.strokeStyle = "white";
+        minimapCtx.lineWidth = 1;
+        minimapCtx.beginPath();
+        minimapCtx.arc(200 - (this.player.position.x + 1000) / 10, (this.player.position.z + 1000) / 10, 5, 0, 2 * Math.PI);
+        minimapCtx.stroke();*/
+        const playerCoords = { x: 200 - (this.player.position.x + 1000) / 10, y: (this.player.position.z + 1000) / 10 };
+        minimapCtx.fillStyle = "white";
+        minimapCtx.save();
+        minimapCtx.translate(playerCoords.x, playerCoords.y);
+        const vec = new THREE.Vector3();
+        this.third.camera.getWorldDirection(vec);
+        minimapCtx.rotate(Math.atan2(vec.x, vec.z));
+        minimapCtx.beginPath();
+        //minimapCtx.stroke();
+        minimapCtx.moveTo(-5, -5);
+        minimapCtx.lineTo(0, 5);
+        minimapCtx.lineTo(5, -5);
+        minimapCtx.fill();
+        minimapCtx.restore();
+        const leaderBoard = [...this.entities.filter(x => !(x instanceof Asteroid))].concat(this.player).sort((a, b) => b.coins - a.coins);
+        document.getElementById("leaderBoard").innerHTML = leaderBoard.slice(0, 3).map(ship => `${ship === this.player ? "Player": ship.constructor.name} - ${ship.coins} coins`).join("<br>");
         //this.player.velocity.position.multiplyScalar(0.95);
         this.player.position.x += this.player.velocity.position.x;
         this.player.position.y += this.player.velocity.position.y;

@@ -17,6 +17,7 @@ class Healer {
         this.stamina = 50;
         this.coins = 0;
         this.cooldown = 0;
+        this.kbCooldown = 0;
         this.targets = null;
         this.velocity = { position: { x: 0, y: 0, z: 0 } };
         this.targetPos = new THREE.Vector3();
@@ -24,6 +25,10 @@ class Healer {
     }
     update() {
         this.cooldown -= 1 * mainScene.timeScale;
+        this.kbCooldown -= 1 * mainScene.timeScale;
+        if (this.mesh.position.distanceTo(ORIGIN) > 1000) {
+            this.destroy();
+        }
         if (this.targets === null || this.targets.length === 0) {
             let targets = [];
             for (let i = 0; i < 5; i++) {
@@ -59,9 +64,9 @@ class Healer {
             } else {
                 desiredPos.copy(this.target.mesh.position);
             }
-            desiredPos.x += this.target.velocity.position.x * distToTarget / 4.5;
-            desiredPos.y += this.target.velocity.position.y * distToTarget / 4.5;
-            desiredPos.z += this.target.velocity.position.z * distToTarget / 4.5;
+            desiredPos.x += this.target.velocity.position.x * distToTarget / 3;
+            desiredPos.y += this.target.velocity.position.y * distToTarget / 3;
+            desiredPos.z += this.target.velocity.position.z * distToTarget / 3;
             this.mesh.lookAt(this.targetPos);
             //if (this.target === mainScene.player) {
             this.targetPos.x += ((desiredPos.x - this.targetPos.x) / 5) * mainScene.timeScale;
@@ -139,6 +144,12 @@ class Healer {
             if (this.mesh.position.distanceTo(bullet.mesh.position) < 7.5 && bullet.source !== this) {
                 bullet.destroy();
                 this.health -= 5 * Math.floor(Math.random() * 5) * (bullet.source instanceof Healer ? -1 : 1);
+                if (this.kbCooldown < 0) {
+                    this.velocity.position.x += bullet.velocity.x * 0.2;
+                    this.velocity.position.y += bullet.velocity.y * 0.2;
+                    this.velocity.position.z += bullet.velocity.z * 0.2;
+                    this.kbCooldown = 30;
+                }
                 /*if (bullet.source === mainScene.player) {
                     this.targets.unshift(bullet.source);
                 }
